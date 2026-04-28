@@ -26,18 +26,19 @@ exit:
 #   a1 = value of the selected element
 # ===========================================================================
 select:
-li t0, 1
-blt a2, t0, Sit1
-bge a3, a2, Sit2
-blt a3, x0, Sit2
-slli t1, a3, 2 
-li a0, 0
-add t1, a1, t1
-lw a1, 0(t1)
-j select_end
-Sit1: li a0, 50
-j select_end
-Sit2: li a0, 100
-j select_end
-select_end:
-  jr ra               # return to the caller
+    li t0, 1 #t0 = 1    
+    blt a2, t0, inv_args #a2 < t0 -> Sit1 (tamanho menor a 1)
+    blt a3, x0, index_out_of_bounds #elementIndex  < 0 (index out of bounds) 
+    bge a3, a2, index_out_of_bounds #elementIndex >= arrayLength (index out of bounds)
+    slli t1, a3, 2 #t1 = elementIndex*(2^2)
+    li a0, 0 #a0 = 0 
+    add t1, a1, t1 #t1 = arrayPointer+elementIndex*4
+    lw a1, 0(t1) #a1 = element[t1]
+    j select_end 
+    inv_args: 
+        li a0, 50
+        j select_end
+    index_out_of_bounds: li a0, 100
+        j select_end
+    select_end:
+        jr ra   # return to the caller
