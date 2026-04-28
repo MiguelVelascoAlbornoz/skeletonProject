@@ -18,15 +18,26 @@ exit:
 # FUNCTION: select
 #   This function selects an element from an integer array.
 # Arguments:
-#   a0 = pointer to int array
-#   a1 = array length
-#   a2 = element index
+#   a1 = pointer to int array
+#   a2 = array length
+#   a3 = element index
 # Returns:
 #   a0 = status code
 #   a1 = value of the selected element
 # ===========================================================================
 select:
-  # TODO: Implement the select function here
-
+li t0, 1
+blt a2, t0, Sit1
+bge a3, a2, Sit2
+blt a3, x0, Sit2
+slli t1, a3, 2 
+li a0, 0
+add t1, a1, t1
+lw a1, 0(t1)
+j select_end
+Sit1: li a0, 50
+j select_end
+Sit2: li a0, 100
+j select_end
 select_end:
   jr ra               # return to the caller
