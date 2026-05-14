@@ -1,10 +1,10 @@
 ###########################################################################
 # Upper bound constants for static memory reservation
 ###########################################################################
-.equ CONST_DIMENSION 4
-.equ CONST_BUFFER_SIZE 1024
-.equ CONST_MAX_VOCAB_TOKENS 100
-.equ CONST_MAX_INPUT_TOKENS 10
+.equ CONST_DIMENSION 4 #Tamanho matrizes 4 colunas
+.equ CONST_BUFFER_SIZE 1024 #Nr bytes de cada ficheiro
+.equ CONST_MAX_VOCAB_TOKENS 100 #Nr palavras vocabulario
+.equ CONST_MAX_INPUT_TOKENS 10 # nr palavras ficheiro input
 
 ###########################################################################
 # System call constants
@@ -78,7 +78,7 @@ main:
     li a2, CONST_BUFFER_SIZE
     
     jal read_file
-
+    #a1 
     ###########################################################################
     # Read input
     ###########################################################################
@@ -202,16 +202,29 @@ main:
 # (in/out) a1: destination buffer
 # (in)     a2: maximum number of bytes to read
 read_file:
-    mv t0, a1
+    addi sp sp -12
+    sw ra, 0(sp)
+    sw s0, 4(sp)
+    sw s1, 8(sp)
+    
+    mv s0, a1 
+    mv s1, a2 
     
     li a1, CONST_READ_ONLY
     li a7, CONST_SYSCALL_OPEN
     ecall # open file and move file descriptor to a0
     
-    mv a1, t0
+    #a0 -> file descriptor
+    mv a1, s0
+    mv a2, s1
+    
     li a7, CONST_SYSCALL_READ
     ecall # read from file to buffer
     
+    lw ra, 0(sp)
+    lw s0, 4(sp)
+    lw s1, 8(sp)
+    addi sp sp 12
     # print buffer (for testing)
     #mv a0, a1
     #li a7, CONST_SYSCALL_PRINT_STRING
