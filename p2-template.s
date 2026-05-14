@@ -87,6 +87,8 @@ main:
     li a2, CONST_BUFFER_SIZE
     
     jal read_file
+    
+    
 
     ###########################################################################
     # Read W_Q matrix
@@ -204,11 +206,16 @@ read_file:
     
     li a1, CONST_READ_ONLY
     li a7, CONST_SYSCALL_OPEN
-    ecall
+    ecall # open file and move file descriptor to a0
     
     mv a1, t0
     li a7, CONST_SYSCALL_READ
-    ecall
+    ecall # read from file to buffer
+    
+    # print buffer (for testing)
+    #mv a0, a1
+    #li a7, CONST_SYSCALL_PRINT_STRING
+    #ecall
     
     ret
 
@@ -220,6 +227,7 @@ read_file:
 # (in)     a1: address of the buffer containing the matrix data (char*)
 parse_matrix_buffer:
     # TODO
+    
 
 # Converts the input tokens into their corresponding indices in the vocabulary.
 # (in/out) a0: address of input indices vector to fill (int*)
