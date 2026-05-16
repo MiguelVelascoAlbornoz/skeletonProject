@@ -268,7 +268,8 @@ tokens_to_indices:
     mv t6 t1
     li a4 0
     li a1 0
-
+    li a5 CONST_CHAR_NEWLINE
+    li a6 CONST_CHAR_EOF
     #t0 -> pointer to actual index to put the index
     #t1 -> pointer to actualInputChar of input buffer
     #t2 -> pointer to actualVocabChar of vocab buffer
@@ -280,23 +281,19 @@ tokens_to_indices:
     tokens_while:
         lbu t3 0(t1) 
         lbu t4 0(t2) 
-        
-        li t5 CONST_CHAR_EOF 
-        beq t3 t5 tokens_while_end #t3 == '\0' (*inputChar == EOF)
+         
+        beq t3 a6 tokens_while_end #t3 == '\0' (*inputChar == EOF)
         
         #Comparar o carater atual do input e do vocabulario
         beq t3 t4 tokens_equal # t3 == t4 (*inputChar == *vocabChar)
         
         tokens_diferent:
-            li t5 CONST_CHAR_NEWLINE
-            beq t4 t5 tokens_diferent_vocab_end_of_line #t4 == '\n' (*vocabChar == '\n')
+            beq t4 a5 tokens_diferent_vocab_end_of_line #t4 == '\n' (*vocabChar == '\n')
             
-            li t5 CONST_CHAR_EOF
-            beq t4 t5 tokens_diferent_vocab_eof #t4 == EOF (*vocabChar == '\0')
+            beq t4 a6 tokens_diferent_vocab_eof #t4 == EOF (*vocabChar == '\0')
             
             tokens_loop:
-                li t5 CONST_CHAR_NEWLINE
-                beq t4 t5 tokens_loop_end #t4 == '\n' (*vocabChar == '\n')
+                beq t4 a5 tokens_loop_end #t4 == '\n' (*vocabChar == '\n')
                 addi t2 t2 1 #vocabChar++(pointer) 
                 lbu t4 0(t2)
                 j tokens_loop
@@ -308,8 +305,7 @@ tokens_to_indices:
                 j tokens_while
                 
             tokens_diferent_vocab_eof:
-                li t5 CONST_CHAR_NEWLINE
-                beq t3 t5 actual_end_of_line #t3 == '\n' (*inputChar == '\n')
+                beq t3 a5 actual_end_of_line #t3 == '\n' (*inputChar == '\n')
                 j tokens_while
             
             tokens_diferent_vocab_end_of_line:
@@ -319,8 +315,7 @@ tokens_to_indices:
                 j tokens_while #volta ao inicio do while
                 
         tokens_equal:
-            li t5 CONST_CHAR_NEWLINE
-            beq t3 t5 actual_end_of_line #t3 == '\n' (*inputChar == new line)
+            beq t3 a5 actual_end_of_line #t3 == '\n' (*inputChar == new line)
             
             addi t1 t1 1 #seguinte caracter no inputChar(pointer)
             addi t2 t2 1 #eguinte caracter no vocabChar(pointer)
