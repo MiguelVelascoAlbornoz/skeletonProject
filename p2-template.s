@@ -41,7 +41,7 @@
 # Feel free to add more if needed.
 ###########################################################################
 VOCABULARY_FILENAME:     .string "vocab.txt"
-EMBEDDINGS_FILENAME:      .string "embeddings.txt"
+EMBEDDINGS_FILENAME:     .string "embeddings.txt"
 INPUT_FILENAME:          .string "input.txt"
 
 W_Q_FILENAME:            .string "W_Q.txt"
@@ -78,7 +78,7 @@ main:
     li a2, CONST_BUFFER_SIZE
     
     jal read_file
-    #a1 
+
     ###########################################################################
     # Read input
     ###########################################################################
@@ -149,7 +149,20 @@ main:
     ###########################################################################
     # Convert input tokens to indices
     ###########################################################################
-    # TODO
+    la a0, INPUT_INDICES_VECTOR
+    la a2, INPUT_BUFFER
+    la a3, VOCAB_BUFFER
+    jal tokens_to_indices
+    la t0, INPUT_TOTAL_TOKENS
+    sw a1 0(t0)
+    mv s0 a1
+    la a0 VOCAB_BUFFER
+    jal print_vocabulary
+    la a0 INPUT_BUFFER
+    jal print_input
+    la a0, INPUT_INDICES_VECTOR
+    mv a1 s0
+    jal print_indices
 
     ###########################################################################
     # Build input embeddings matrix
@@ -248,6 +261,83 @@ parse_matrix_buffer:
 # (in)     a2: address to input buffer
 # (in)     a3: address to vocabulary buffer
 tokens_to_indices:
+    #Inicialização
+    mv t0 a0
+    mv t1 a2
+    mv t2 a3
+    mv t6 t1
+    li a4 0
+    li a1 0
+
+    #t0 -> pointer to actual index to put the index
+    #t1 -> pointer to actualInputChar of input buffer
+    #t2 -> pointer to actualVocabChar of vocab buffer
+    #t6 -> pointer to actualWorld of input buffer
+    #t3 -> actual input char
+    #t4 -> actual vocab char
+    #a4 -> nr da palavra a inserir
+    #a1 -> nr de palavras no input
+    tokens_while:
+        lbu t3 0(t1) 
+        lbu t4 0(t2) 
+        
+        li t5 CONST_CHAR_EOF 
+        beq t3 t5 tokens_while_end #t3 == '\0' (*inputChar == EOF)
+        
+        #Comparar o carater atual do input e do vocabulario
+        beq t3 t4 tokens_equal # t3 == t4 (*inputChar == *vocabChar)
+        
+        tokens_diferent:
+            li t5 CONST_CHAR_NEWLINE
+            beq t4 t5 tokens_diferent_vocab_end_of_line #t4 == '\n' (*vocabChar == '\n')
+            
+            li t5 CONST_CHAR_EOF
+            beq t4 t5 tokens_diferent_vocab_eof #t4 == EOF (*vocabChar == '\0')
+            
+            tokens_loop:
+                li t5 CONST_CHAR_NEWLINE
+                beq t4 t5 tokens_loop_end #t4 == '\n' (*vocabChar == '\n')
+                addi t2 t2 1 #vocabChar++(pointer) 
+                lbu t4 0(t2)
+                j tokens_loop
+            
+            tokens_loop_end:
+                addi t2 t2 1
+                mv t1 t6
+                addi a4 a4 1
+                j tokens_while
+                
+            tokens_diferent_vocab_eof:
+                li t5 CONST_CHAR_NEWLINE
+                beq t3 t5 actual_end_of_line #t3 == '\n' (*inputChar == '\n')
+                j tokens_while
+            
+            tokens_diferent_vocab_end_of_line:
+                addi t2 t2 1 #vocabChar(pointer) passa ao siguiente caracter
+                mv t1 t6 #inputChar(pointer) restaura-se ao inicio da palavra
+                addi a4 a4 1 #contador do indice aumenta
+                j tokens_while #volta ao inicio do while
+                
+        tokens_equal:
+            li t5 CONST_CHAR_NEWLINE
+            beq t3 t5 actual_end_of_line #t3 == '\n' (*inputChar == new line)
+            
+            addi t1 t1 1 #seguinte caracter no inputChar(pointer)
+            addi t2 t2 1 #eguinte caracter no vocabChar(pointer)
+            j tokens_while
+        
+            actual_end_of_line:
+                sw a4 0(t0) #guardar o indice 
+                li a4 0 #contador de indices volta a 0
+                addi t0 t0 4 #actualIndex++ #pointer em que se guardara o proximo indice
+                addi a1 a1 1 #tamanho aumenta
+                mv t2 a3 #vocabChar aponta ao inicio do buffer do vocabulario
+                addi t1 t1 1 #inputChar++(pointer) avança ao proximo elemento
+                mv t6 t1 #actualiza a palavra atual
+                j tokens_while
+        
+    tokens_while_end:
+         ret
     # TODO
 
 # (in/out) a0: address of the output matrix to fill (int*)
