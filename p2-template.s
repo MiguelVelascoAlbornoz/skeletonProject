@@ -350,7 +350,36 @@ tokens_to_indices:
 # (in)     a2: address of the input indices array (int*)
 # (in)     a3: number of tokens in the input (int)
 build_input_embeddings_matrix:
-    # TODO
+    li t0 0 #iterador i
+    li a4 CONST_DIMENSION
+    build_input_while:
+        bge t0 a3 build_input_while_end #if (i >= nTokens) break while
+        
+        lw t1 0(a2) # t1(indice) = *indicesArray
+        
+        mul t1 t1 a4 #indice *= CONST_DIMENSION
+        slli t1 t1 2 #indice *= 4
+        add t1 t1 a1 #t1(embedding adress) = embeddingsMatrix+indice
+        
+        li t3 0 #iterador j
+        
+        build_input_while_2:
+            bge t3 a4 build_input_while_2_end # j >= CONST_DIMENSION
+            lw t2 0(t1) #load embedding t2 = *ambeddingAdress
+            sw t2 0(a0) #save embedding *a0 = t2
+            addi t3 t3 1 # j++
+            addi t1 t1 4 # embeddingAdress += 4
+            addi a0 a0 4 # outputMatrix += 4
+            j build_input_while_2
+            
+        build_input_while_2_end:
+        
+        addi t0 t0 1 #++i
+        addi a2 a2 4 #indicesArray*=4
+        j build_input_while
+        
+    build_input_while_end:
+        ret
 
 # (in/out) a0: address of the output matrix to fill (int*)
 # (in)     a1: address of the first matrix (int*)
