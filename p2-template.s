@@ -40,9 +40,9 @@
 # Data section with static memory reservations.
 # Feel free to add more if needed.
 ###########################################################################
-VOCABULARY_FILENAME:     .string "vocab.txt"
-EMBEDDINGS_FILENAME:     .string "embeddings.txt"
-INPUT_FILENAME:          .string "input.txt"
+VOCABULARY_FILENAME:     .string "C:/Users/migue/Downloads/Aulas/IAC/skeletonProject/vocab.txt"
+EMBEDDINGS_FILENAME:     .string "C:/Users/migue/Downloads/Aulas/IAC/skeletonProject/embeddings.txt"
+INPUT_FILENAME:          .string "C:/Users/migue/Downloads/Aulas/IAC/skeletonProject/input.txt"
 
 W_Q_FILENAME:            .string "W_Q.txt"
 W_K_FILENAME:            .string "W_K.txt"
@@ -69,7 +69,7 @@ V_MATRIX:                .zero (CONST_MAX_INPUT_TOKENS * CONST_DIMENSION * 4) # 
 
 .text
 main:
-    
+
     ###########################################################################
     # Read vocabulary
     ###########################################################################
@@ -153,16 +153,9 @@ main:
     la a2, INPUT_BUFFER
     la a3, VOCAB_BUFFER
     jal tokens_to_indices
-    la t0, INPUT_TOTAL_TOKENS
-    sw a1 0(t0)
-    mv s0 a1
-    la a0 VOCAB_BUFFER
-    jal print_vocabulary
-    la a0 INPUT_BUFFER
-    jal print_input
-    la a0, INPUT_INDICES_VECTOR
-    mv a1 s0
-    jal print_indices
+    
+    la a0 INPUT_TOTAL_TOKENS
+    sw a1 0(a0)
 
     ###########################################################################
     # Build input embeddings matrix
@@ -204,6 +197,18 @@ main:
     ###########################################################################
     # TODO
 
+
+    #debug things
+    la a0 VOCAB_BUFFER 
+    jal print_vocabulary
+    
+    la a0 INPUT_BUFFER
+    jal print_input
+    
+    la a0 INPUT_INDICES_VECTOR
+    la a1 INPUT_TOTAL_TOKENS
+    lw a1 0(a1)
+    jal print_indices
     ###########################################################################
     # Terminate program successfully
     ###########################################################################
@@ -230,9 +235,14 @@ read_file:
     #a0 -> file descriptor
     mv a1, s0
     mv a2, s1
+    mv s0 a0
     
     li a7, CONST_SYSCALL_READ
     ecall # read from file to buffer
+    
+    li a7, CONST_SYSCALL_CLOSE
+    mv a0 s0
+    ecall
     
     lw ra, 0(sp)
     lw s0, 4(sp)
@@ -333,7 +343,7 @@ tokens_to_indices:
         
     tokens_while_end:
          ret
-    # TODO
+
 
 # (in/out) a0: address of the output matrix to fill (int*)
 # (in)     a1: address of the vocabulary embeddings matrix (int*)
