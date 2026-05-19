@@ -156,6 +156,7 @@ main:
     
     la a0 INPUT_TOTAL_TOKENS
     sw a1 0(a0)
+    mv s0, a1 # s0 <- matrix row amount
 
     ###########################################################################
     # Build input embeddings matrix
@@ -180,7 +181,15 @@ main:
     ###########################################################################
     # Compute scores for the last input token
     ###########################################################################
-    # TODO
+    la a0, SCORES_VECTOR
+    la a1, W_Q_MATRIX
+    la a2, W_K_MATRIX
+    mv a3, s0
+    lw a4, CONST_DIMENSION
+    la a5, SCORES_VECTOR
+    
+    jal compute_scores
+    
 
     ###########################################################################
     # Get the highest score index using argmax
@@ -398,7 +407,49 @@ matrix_multiply:
 # (in)     a4: #columns of Q and K (int)
 # (in)     a5: target token index for which we want to compute the score (int)
 compute_scores:
-    # TODO
+    slli t0, a4, 2 # t0 <- col amount * 4
+    mul a5, t0, a5 
+    
+    addi, sp, sp, -24
+    sw s0, 0(sp)
+    sw s1, 4(sp)
+    sw s2, 8(sp)
+    sw s3, 12(sp)
+    sw s4, 16(sp)
+    sw ra, 20(sp)
+    
+    mv s0, a0 # s0 <- address of the current ouput score in output score vector (int*)
+    add s1, a1, a5 # s1 <- address of target in Q matrix (int*)
+    mv s2, a2 # s2 <- address of current vector in K matrix (int*)
+    mv s3, a3 # s3 <- row amount
+    mv s4, a4 # s4 <- column amount
+    
+    score_loop:
+    beqz s3, score_end
+    mv a1, s1 # a1 <- address of first vector (int*)
+    mv a2, s2 # a2 <- adress of second vector (int*)
+    mv a3, s4 # a3 <- length of the vectors (int)
+    
+    jal ra, dot
+    sw a1, 0(s0) # move dot product to output score vector
+    
+    addi s0, s0, 4
+    slli t0, s4, 2 # t0 <- col amount * 4
+    add s2, s2, t0 # s2 <- s2 + (row amount * 4) (next vector in matrix)
+    addi s3, s3, -1
+    
+    j score_loop
+    
+    score_end:     
+    lw s0, 0(sp)
+    lw s1, 4(sp)
+    lw s2, 8(sp)
+    lw s3, 12(sp)
+    lw s4, 16(sp)
+    lw ra, 20(sp)
+    addi sp, sp, 24
+    
+    ret
 
 # (out) a0: address of the selected vector (int*)
 # (in)  a1: address of matrix (int*)
