@@ -87,8 +87,6 @@ main:
     li a2, CONST_BUFFER_SIZE
     
     jal read_file
-    
-    
 
     ###########################################################################
     # Read W_Q matrix
@@ -102,7 +100,10 @@ main:
     ###########################################################################
     # Parse W_Q matrix from buffer
     ###########################################################################
-    # TODO
+    la a0, W_Q_MATRIX
+    la a1, MATRIX_BUFFER
+
+    jal parse_matrix_buffer
 
     ###########################################################################
     # Read W_K matrix
@@ -116,7 +117,10 @@ main:
     ###########################################################################
     # Parse W_K matrix from buffer
     ###########################################################################
-    # TODO
+    la a0, W_K_MATRIX
+    la a1, MATRIX_BUFFER
+
+    jal parse_matrix_buffer
 
     ###########################################################################
     # Read W_V matrix
@@ -130,7 +134,10 @@ main:
     ###########################################################################
     # Parse W_V matrix from buffer
     ###########################################################################
-    # TODO
+    la a0, W_V_MATRIX
+    la a1, MATRIX_BUFFER
+
+    jal parse_matrix_buffer
 
     ###########################################################################
     # Read embeddings matrix
@@ -144,8 +151,12 @@ main:
     ###########################################################################
     # Parse vocabulary embeddings matrix from buffer
     ###########################################################################
-    # TODO
+    la a0, VOCAB_EMBEDDINGS_MATRIX
+    la a1, MATRIX_BUFFER
 
+    jal parse_matrix_buffer
+    la t0, VOCAB_TOTAL_TOKENS
+    sw a1, 0(t0)
     ###########################################################################
     # Convert input tokens to indices
     ###########################################################################
@@ -271,13 +282,14 @@ read_file:
 # (out)    a1: number of rows in the matrix (int)
 # (in)     a1: address of the buffer containing the matrix data (char*)
 parse_matrix_buffer:
-    li t1, CONST_CHAR_NEWLINE
-    li t2, CONST_CHAR_SPACE
+    addi sp, sp, -4
+    sw s0, 0(sp)
+    mv s0, a1
     li t3, 1 #Contador de linhas
     li t4, 0 #Registo para n>9
     li t5, 1 #Sinal do número
     parse_matrix_buffer_loop:
-        lb t0, 0(a1) # Carrega um elemento do buffer 
+        lb t0, 0(s0) # Carrega um elemento do buffer 
         beq t0, CONST_CHAR_EOF, parse_matrix_buffer_end # Fim da matriz
         beq t0, CONST_CHAR_SPACE, parse_matrix_buffer_Novo_Numero # Nova coluna
         beq t0, CONST_CHAR_NEWLINE, parse_matrix_buffer_Nova_Linha # Mudança de linha
@@ -285,14 +297,14 @@ parse_matrix_buffer:
         addi t0, t0, -CONST_CHAR_ZERO
         mul t4, t4, 10 #Cálculo de n>9
         addi t4, t4, t0
-        addi a1, a1, 1
+        addi s0, s0, 1
         j parse_matrix_buffer_loop
     parse_matrix_buffer_Novo_Numero: # Este if faz o cálculo de um novo número, após encontrar um espaço.
         mul t4, t4, t5 # Muda o sinal do número de acordo com o temporário de sinal t5.
         sw t4, 0(a0) # Guarda o valor na matriz de retorno.
         addi a0, a0, 4 # Avança a matriz de retorno
         mv t4, x0 # Reinicia a soma
-        addi a1, a1, 1 # Avança o buffer de valores.
+        addi s0, s0, 1 # Avança o buffer de valores.
         li t5, 1 # Reinicia o sinal.
         j parse_matrix_buffer_loop
     parse_matrix_buffer_Nova_Linha:
@@ -300,19 +312,21 @@ parse_matrix_buffer:
         sw t4, 0(a0)
         addi a0, a0, 4
         mv t4, x0
-        addi a1, a1, 1
+        addi s0, s0, 1
         addi t3, t3, 1 # Avança o contador de linhas.
         li t5, 1
         j parse_matrix_buffer_loop
     parse_matrix_buffer_Mudanca_Sinal:
         li t5, -1 # Marca o sinal como negativo.
-        addi a1, a1, 1
+        addi s0, s0, 1
         j parse_matrix_buffer_loop
     parse_matrix_buffer_end:
         mv a1, t3 # Move o número de linhas para a1.
         mul t4, t4, t5 # Mesma lógica de Novo_Número.
         sw t4, 0(a0)
         mv t4, x0
+        lw s0, 0(sp)
+        addi sp, sp, 4
         jr ra # Retorna à chamada.
 
     
