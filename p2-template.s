@@ -155,8 +155,8 @@ main:
     la a1, MATRIX_BUFFER
 
     jal parse_matrix_buffer
-    la t0, VOCAB_TOTAL_TOKENS
-    sw a1, 0(t0)
+    la t0, VOCAB_TOTAL_TOKENS 
+    sw a1, 0(t0) # Guarda o valor das linhas de EMBEDDINGS_MATRIX
     ###########################################################################
     # Convert input tokens to indices
     ###########################################################################
@@ -177,17 +177,34 @@ main:
     ###########################################################################
     # Build matrix Q
     ###########################################################################
-    # TODO
-
+    la a0, Q_MATRIX
+    la a1, INPUT_EMBEDDINGS_MATRIX
+    mv a2, s0
+    li a3,CONST_DIMENSION
+    la a4, W_Q_MATRIX
+    li a5, CONST_DIMENSION
+    li a6, CONST_DIMENSION
     ###########################################################################
     # Build matrix K
     ###########################################################################
-    # TODO
+    la a0, K_MATRIX
+    la a1, INPUT_EMBEDDINGS_MATRIX
+    mv a2, s0
+    li a3,CONST_DIMENSION
+    la a4, W_K_MATRIX
+    li a5, CONST_DIMENSION
+    li a6, CONST_DIMENSION
 
     ###########################################################################
     # Build matrix V
     ###########################################################################
-    # TODO
+    la a0, V_MATRIX
+    la a1, INPUT_EMBEDDINGS_MATRIX
+    mv a2, s0
+    li a3,CONST_DIMENSION
+    la a4, W_V_MATRIX
+    li a5, CONST_DIMENSION
+    li a6, CONST_DIMENSION
 
     ###########################################################################
     # Compute scores for the last input token
