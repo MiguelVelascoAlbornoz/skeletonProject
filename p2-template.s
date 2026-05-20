@@ -184,6 +184,9 @@ main:
     la a4, W_Q_MATRIX
     li a5, CONST_DIMENSION
     li a6, CONST_DIMENSION
+
+    jal matrix_multiply
+
     ###########################################################################
     # Build matrix K
     ###########################################################################
@@ -194,6 +197,8 @@ main:
     la a4, W_K_MATRIX
     li a5, CONST_DIMENSION
     li a6, CONST_DIMENSION
+
+    jal matrix_multiply
 
     ###########################################################################
     # Build matrix V
@@ -206,14 +211,16 @@ main:
     li a5, CONST_DIMENSION
     li a6, CONST_DIMENSION
 
+    jal matrix_multiply
+
     ###########################################################################
     # Compute scores for the last input token
     ###########################################################################
     la a0, SCORES_VECTOR
-    la a1, W_Q_MATRIX
-    la a2, W_K_MATRIX
+    la a1, Q_MATRIX
+    la a2, K_MATRIX
     mv a3, s0
-    lw a4, CONST_DIMENSION
+    li a4, CONST_DIMENSION
     la a5, SCORES_VECTOR
     
     jal compute_scores
@@ -236,15 +243,15 @@ main:
 
 
     #debug things
-    la a0 VOCAB_BUFFER 
+    la a0, VOCAB_BUFFER 
     jal print_vocabulary
     
-    la a0 INPUT_BUFFER
+    la a0, INPUT_BUFFER
     jal print_input
     
-    la a0 INPUT_INDICES_VECTOR
-    la a1 INPUT_TOTAL_TOKENS
-    lw a1 0(a1)
+    la a0, INPUT_INDICES_VECTOR
+    la a1, INPUT_TOTAL_TOKENS
+    lw a1, 0(a1)
     jal print_indices
     ###########################################################################
     # Terminate program successfully
