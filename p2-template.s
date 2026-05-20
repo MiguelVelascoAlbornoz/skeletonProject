@@ -47,7 +47,7 @@ INPUT_FILENAME:          .string "C:/Users/migue/Downloads/Aulas/IAC/skeletonPro
 W_Q_FILENAME:            .string "W_Q.txt"
 W_K_FILENAME:            .string "W_K.txt"
 W_V_FILENAME:            .string "W_V.txt"
-
+.align 2
 VOCAB_BUFFER:            .zero CONST_BUFFER_SIZE                              # Contents of the vocabulary file
 INPUT_BUFFER:            .zero CONST_BUFFER_SIZE                              # Contents of the input file
 MATRIX_BUFFER:           .zero CONST_BUFFER_SIZE                              # Contents of a matrix file (used for W_Q, W_K, W_V, and embeddings)
@@ -271,7 +271,50 @@ read_file:
 # (out)    a1: number of rows in the matrix (int)
 # (in)     a1: address of the buffer containing the matrix data (char*)
 parse_matrix_buffer:
-    # TODO
+    li t1, CONST_CHAR_NEWLINE
+    li t2, CONST_CHAR_SPACE
+    li t3, 1 #Contador de linhas
+    li t4, 0 #Registo para n>9
+    li t5, 1 #Sinal do número
+    parse_matrix_buffer_loop:
+        lb t0, 0(a1) # Carrega um elemento do buffer 
+        beq t0, CONST_CHAR_EOF, parse_matrix_buffer_end # Fim da matriz
+        beq t0, CONST_CHAR_SPACE, parse_matrix_buffer_Novo_Numero # Nova coluna
+        beq t0, CONST_CHAR_NEWLINE, parse_matrix_buffer_Nova_Linha # Mudança de linha
+        beq t0, CONST_CHAR_HYPHEN, parse_matrix_buffer_Mudanca_Sinal # Números negativos
+        addi t0, t0, -CONST_CHAR_ZERO
+        mul t4, t4, 10 #Cálculo de n>9
+        addi t4, t4, t0
+        addi a1, a1, 1
+        j parse_matrix_buffer_loop
+    parse_matrix_buffer_Novo_Numero: # Este if faz o cálculo de um novo número, após encontrar um espaço.
+        mul t4, t4, t5 # Muda o sinal do número de acordo com o temporário de sinal t5.
+        sw t4, 0(a0) # Guarda o valor na matriz de retorno.
+        addi a0, a0, 4 # Avança a matriz de retorno
+        mv t4, x0 # Reinicia a soma
+        addi a1, a1, 1 # Avança o buffer de valores.
+        li t5, 1 # Reinicia o sinal.
+        j parse_matrix_buffer_loop
+    parse_matrix_buffer_Nova_Linha:
+        mul t4, t4, t5 # Mesma lógica de Novo_Número.
+        sw t4, 0(a0)
+        addi a0, a0, 4
+        mv t4, x0
+        addi a1, a1, 1
+        addi t3, t3, 1 # Avança o contador de linhas.
+        li t5, 1
+        j parse_matrix_buffer_loop
+    parse_matrix_buffer_Mudanca_Sinal:
+        li t5, -1 # Marca o sinal como negativo.
+        addi a1, a1, 1
+        j parse_matrix_buffer_loop
+    parse_matrix_buffer_end:
+        mv a1, t3 # Move o número de linhas para a1.
+        mul t4, t4, t5 # Mesma lógica de Novo_Número.
+        sw t4, 0(a0)
+        mv t4, x0
+        jr ra # Retorna à chamada.
+
     
 
 # Converts the input tokens into their corresponding indices in the vocabulary.
@@ -398,7 +441,46 @@ build_input_embeddings_matrix:
 # (in)     a5: #rows of the second matrix (int)
 # (in)     a6: #columns of the second matrix (int)
 matrix_multiply:
-    # TODO
+     li t0, 0 # índice i 
+    matrix_multiply_first_loop:
+        beq t0, a2, matrix_multiply_end  
+        li t1, 0 # índice j 
+        matrix_multiply_second_loop:
+            beq t1, a6, matrix_multiply_mudança_linha
+            li t2, 0 # índice k
+            li t3, 0 # soma_total        
+            matrix_multiply_third_loop:
+                beq t2, a3, matrix_multiply_mudança_coluna # Quando o k alcança o número de colunas.
+                mul t4, t0, a3 # (i * colunas a), indica o avanço através das linhas.
+                addi t4, t4, t2 # (t4 + K), indica o avanço através das colunas.
+                slli t4, t4, 2 # Conversão em bits.
+                add t4, t4, a1 # Adicionar ao endereço.
+                lw t5, 0(t4) # Load do valor.
+                mul t6, t2, a6 # (k * colunas b), indica o avanço através das linhas.
+                addi t6, t6, t1 # (t4 + j), indica o avanço através das colunas.
+                slli t6, t6, 2 # Mesmo lógica de A.
+                add t6, t6, a4
+                lw t6, 0(t6)
+                mul t5, t5, t6
+                add t3, t3, t5 # Armazenar o resultado da multiplicação em t3.
+                addi t2, t2, 1 # Incrementar o k.
+                j matrix_multiply_third_loop
+            matrix_multiply_mudança_coluna:
+                mul t4, t0, a6 # (i * número colunas A), escolhe qual linha da matriz de output se seleciona.
+                add t4, t4, t1 # (t4 + j), avança através da linha da matriz de output de acordo com o j, com o segundo ciclo.
+                slli t4, t4, 2 # Conversão em bits.
+                add t4, t4, a0 # Adicionar ao endereço.
+                sw t3, 0(t4) # Load do valor.
+                addi t1, t1, 1 # Incrementar o j.
+                j matrix_multiply_second_loop
+        matrix_multiply_mudança_linha:
+            addi t0, t0, 1 # Incrementar o i.
+            j matrix_multiply_first_loop
+    matrix_multiply_end:
+        jr ra # Retorno à chamada.
+
+
+
 
 # (in/out) a0: address of the output scores vector to fill (int*)
 # (in)     a1: address of Q matrix (int*)
