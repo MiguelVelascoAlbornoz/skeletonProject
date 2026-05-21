@@ -234,7 +234,7 @@ main:
     ###########################################################################
     # Get the highest score index using argmax
     ###########################################################################
-    la a0, SCORES_VECTOR
+    la a1, SCORES_VECTOR
     mv a2, s0
 
     jal argmax
@@ -242,18 +242,28 @@ main:
     ###########################################################################
     # Select chosen vector in V using the index from argmax
     ###########################################################################
+#addi sp, sp, -4      # reservar 1 word (4 bytes)
+#sw a1, 0(sp)         # guardar a1 en la pila
+
+#mv a0, sp            # a0 = puntero al "vector"
+#li a1, 1             # longitud = 1
+#jal print_vector
+
+#addi sp, sp, 4       # restaurar stack
+
     mv a4, a1 # Resultado da coluna escolhida argmax
     la a1, V_MATRIX
     mv a2, s0
     li a3, CONST_DIMENSION
     
     jal select_vector_in_matrix
+    
 
-    ###########################################################################
-    # Pick the next token in the vocabulary with the highest score
-    ###########################################################################
-    # TODO
-
+    la a1 VOCAB_EMBEDDINGS_MATRIX
+    la a2 VOCAB_TOTAL_TOKENS
+    lw a2 0(a2)
+    jal decide_next_token
+    #a0 next token index in vocabulary
 
     #debug things
     la a0, VOCAB_BUFFER 
@@ -293,6 +303,11 @@ main:
     jal print_matrix
     
     la a0, SCORES_VECTOR
+    la a1, INPUT_TOTAL_TOKENS
+    lw a1, 0(a1)
+    jal print_vector
+    
+    mv a0 s1
     la a1, INPUT_TOTAL_TOKENS
     lw a1, 0(a1)
     jal print_vector
@@ -626,7 +641,6 @@ compute_scores:
 # (in)  a3: #cols (int)
 # (in)  a4: target row
 select_vector_in_matrix:
-    addi a4, a4, -1
     mul t0, a4, a3
     slli t0, t0, 2
     add a0, a1, t0
@@ -637,8 +651,44 @@ select_vector_in_matrix:
 # (in)  a1: vocabulary embeddings address (int*)
 # (in)  a2: number of tokens in vocabulary (int)
 decide_next_token:
-    # TODO
+    addi sp sp -32
+    sw s0 0(sp) #Target vector adress
+    sw s1 4(sp) #E,beddings adress
+    sw s2 8(sp) #Num tokens
+    sw s3 12(sp) # bestIndex
+    sw s4 16(sp) # ActualIndex
+    sw ra 20(sp)
+    sw s5 24(sp) #bestAdress
+    sw s6 28(sp) #actualAdress
+    sw s7 32(sp) # embeddingsSize
+    mv s0 a0
+    mv s1 a1
+    mv s2 a2
+    li s3 0
+    li s4 0
+    mv s5 s1
+    mv s6 s1
+    li s7 CONST_DIMENSION #embeddings size
+    next_token_loop:
+        bge s3 s2 next_token_end #actualIndex >= TOTAL_TOKENS 
+        
+        #Obter adress de embedding atual
+        
+        mul a1 s4 s5 # a0 = rowIndex*CONST_DIMENSION
+        slli a1 a1 2 #a0 *= 4
+        
+        
+    next_token_end:
 
+        lw s0 0(sp)
+        lw s1 4(sp)
+        lw s2 8(sp)
+        lw s3 12(sp)
+        lw s4 16(sp)
+        lw ra 20(sp)
+        lw s5 24(sp)
+        lw s6 28(sp)
+        addi sp sp 32
 #############################################################################################################
 # Dot product and argmax helper functions.
 #############################################################################################################
