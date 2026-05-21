@@ -229,12 +229,20 @@ main:
     ###########################################################################
     # Get the highest score index using argmax
     ###########################################################################
-    # TODO
+    li a1, SCORES_VECTOR
+    la a2, s0
+
+    jal argmax
 
     ###########################################################################
     # Select chosen vector in V using the index from argmax
     ###########################################################################
-    # TODO
+    mv a4, a1 # Resultado da coluna escolhida argmax
+    la a1, V_MATRIX
+    mv a2, s0
+    li a3, CONST_DIMENSION
+    
+    jal select_vector_in_matrix
 
     ###########################################################################
     # Pick the next token in the vocabulary with the highest score
@@ -255,8 +263,8 @@ main:
     jal print_indices
     
     la a0, VOCAB_EMBEDDINGS_MATRIX
-    la a1 VOCAB_TOTAL_TOKENS
-    la a2 CONST_DIMENSION
+    li a1 VOCAB_TOTAL_TOKENS
+    li a2 CONST_DIMENSION
     ######################
     jal print_matrix
     #####################################################
@@ -317,8 +325,8 @@ parse_matrix_buffer:
     li t5, 1 #Sinal do número
     parse_matrix_buffer_loop:
         lb t0, 0(s0) # Carrega um elemento do buffer 
-        
-        
+
+
         li a5 CONST_CHAR_EOF
         beq t0, a5, parse_matrix_buffer_end # Fim da matriz
         li a5 CONST_CHAR_SPACE
@@ -361,7 +369,7 @@ parse_matrix_buffer:
         mv t4, x0
         lw s0, 0(sp)
         addi sp, sp, 4
-        jr ra # Retorna à chamada.
+        ret # Retorna à chamada.
 
     
 
@@ -525,7 +533,7 @@ matrix_multiply:
             addi t0, t0, 1 # Incrementar o i.
             j matrix_multiply_first_loop
     matrix_multiply_end:
-        jr ra # Retorno à chamada.
+        ret # Retorno à chamada.
 
 
 
@@ -587,7 +595,11 @@ compute_scores:
 # (in)  a3: #cols (int)
 # (in)  a4: target row
 select_vector_in_matrix:
-    # TODO
+    addi a4, a4, -1
+    mul t0, a4, a3
+    slli t0, t0, 2
+    add a0, a1, t0
+    ret
 
 # (out) a0: index of the predicted token in the vocabulary (int)
 # (in)  a0: address of target vector (int*)
