@@ -229,7 +229,10 @@ main:
     ###########################################################################
     # Get the highest score index using argmax
     ###########################################################################
-    # TODO
+    la a1, SCORES_VECTOR
+    la a2, s0
+
+    jal argmax
 
     ###########################################################################
     # Select chosen vector in V using the index from argmax
