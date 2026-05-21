@@ -172,8 +172,12 @@ main:
     ###########################################################################
     # Build input embeddings matrix
     ###########################################################################
-    # TODO
-
+    la a0 INPUT_EMBEDDINGS_MATRIX
+    la a1 VOCAB_EMBEDDINGS_MATRIX
+    la a2 INPUT_INDICES_VECTOR
+    mv a3 s0
+    jal build_input_embeddings_matrix
+    
     ###########################################################################
     # Build matrix Q
     ###########################################################################
@@ -221,7 +225,8 @@ main:
     la a2, K_MATRIX
     mv a3, s0
     li a4, CONST_DIMENSION
-    la a5, SCORES_VECTOR
+    mv a5 s0
+    addi a5 a5 -1
     
     jal compute_scores
     
@@ -229,8 +234,8 @@ main:
     ###########################################################################
     # Get the highest score index using argmax
     ###########################################################################
-    li a1, SCORES_VECTOR
-    la a2, s0
+    la a0, SCORES_VECTOR
+    mv a2, s0
 
     jal argmax
 
@@ -262,11 +267,37 @@ main:
     lw a1, 0(a1)
     jal print_indices
     
-    la a0, VOCAB_EMBEDDINGS_MATRIX
-    li a1 VOCAB_TOTAL_TOKENS
+    la a0, INPUT_EMBEDDINGS_MATRIX
+    la a1, INPUT_TOTAL_TOKENS
+    lw a1, 0(a1)
     li a2 CONST_DIMENSION
-    ######################
     jal print_matrix
+    
+    
+    la a0, Q_MATRIX
+    la a1, INPUT_TOTAL_TOKENS
+    lw a1, 0(a1)
+    li a2 CONST_DIMENSION
+    jal print_matrix
+    
+    la a0, K_MATRIX
+    la a1, INPUT_TOTAL_TOKENS
+    lw a1, 0(a1)
+    li a2 CONST_DIMENSION
+    jal print_matrix
+    
+    la a0, V_MATRIX
+    la a1, INPUT_TOTAL_TOKENS
+    lw a1, 0(a1)
+    li a2 CONST_DIMENSION
+    jal print_matrix
+    
+    la a0, SCORES_VECTOR
+    la a1, INPUT_TOTAL_TOKENS
+    lw a1, 0(a1)
+    jal print_vector
+    ######################
+
     #####################################################
     # Terminate program successfully
     ###########################################################################
