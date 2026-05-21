@@ -44,10 +44,10 @@ VOCABULARY_FILENAME:     .string "C:/Users/migue/Downloads/Aulas/IAC/skeletonPro
 EMBEDDINGS_FILENAME:     .string "C:/Users/migue/Downloads/Aulas/IAC/skeletonProject/embeddings.txt"
 INPUT_FILENAME:          .string "C:/Users/migue/Downloads/Aulas/IAC/skeletonProject/input.txt"
 
-W_Q_FILENAME:            .string "W_Q.txt"
-W_K_FILENAME:            .string "W_K.txt"
-W_V_FILENAME:            .string "W_V.txt"
-.align 2
+W_Q_FILENAME:            .string "C:/Users/migue/Downloads/Aulas/IAC/skeletonProject/W_Q.txt"
+W_K_FILENAME:            .string "C:/Users/migue/Downloads/Aulas/IAC/skeletonProject/W_K.txt"
+W_V_FILENAME:            .string "C:/Users/migue/Downloads/Aulas/IAC/skeletonProject/W_V.txt"
+.align 4
 VOCAB_BUFFER:            .zero CONST_BUFFER_SIZE                              # Contents of the vocabulary file
 INPUT_BUFFER:            .zero CONST_BUFFER_SIZE                              # Contents of the input file
 MATRIX_BUFFER:           .zero CONST_BUFFER_SIZE                              # Contents of a matrix file (used for W_Q, W_K, W_V, and embeddings)
@@ -256,7 +256,13 @@ main:
     la a1, INPUT_TOTAL_TOKENS
     lw a1, 0(a1)
     jal print_indices
-    ###########################################################################
+    
+    la a0, VOCAB_EMBEDDINGS_MATRIX
+    la a1 VOCAB_TOTAL_TOKENS
+    la a2 CONST_DIMENSION
+    ######################
+    jal print_matrix
+    #####################################################
     # Terminate program successfully
     ###########################################################################
     li a0, 0
@@ -295,10 +301,7 @@ read_file:
     lw s0, 4(sp)
     lw s1, 8(sp)
     addi sp sp 12
-    # print buffer (for testing)
-    #mv a0, a1
-    #li a7, CONST_SYSCALL_PRINT_STRING
-    #ecall
+
     
     ret
 
@@ -312,18 +315,25 @@ parse_matrix_buffer:
     addi sp, sp, -4
     sw s0, 0(sp)
     mv s0, a1
-    li t3, 1 #Contador de linhas
+    li t3, 0 #Contador de linhas
     li t4, 0 #Registo para n>9
     li t5, 1 #Sinal do número
     parse_matrix_buffer_loop:
         lb t0, 0(s0) # Carrega um elemento do buffer 
-        beq t0, CONST_CHAR_EOF, parse_matrix_buffer_end # Fim da matriz
-        beq t0, CONST_CHAR_SPACE, parse_matrix_buffer_Novo_Numero # Nova coluna
-        beq t0, CONST_CHAR_NEWLINE, parse_matrix_buffer_Nova_Linha # Mudança de linha
-        beq t0, CONST_CHAR_HYPHEN, parse_matrix_buffer_Mudanca_Sinal # Números negativos
+        
+        
+        li a5 CONST_CHAR_EOF
+        beq t0, a5, parse_matrix_buffer_end # Fim da matriz
+        li a5 CONST_CHAR_SPACE
+        beq t0, a5, parse_matrix_buffer_Novo_Numero # Nova coluna
+        li a5 CONST_CHAR_NEWLINE
+        beq t0, a5, parse_matrix_buffer_Nova_Linha # Mudança de linha
+        li a5 CONST_CHAR_HYPHEN
+        beq t0, a5, parse_matrix_buffer_Mudanca_Sinal # Números negativos
         addi t0, t0, -CONST_CHAR_ZERO
-        mul t4, t4, 10 #Cálculo de n>9
-        addi t4, t4, t0
+        li a5 10
+        mul t4, t4, a5 #Cálculo de n>9
+        add t4, t4, t0
         addi s0, s0, 1
         j parse_matrix_buffer_loop
     parse_matrix_buffer_Novo_Numero: # Este if faz o cálculo de um novo número, após encontrar um espaço.
@@ -493,12 +503,12 @@ matrix_multiply:
             matrix_multiply_third_loop:
                 beq t2, a3, matrix_multiply_mudança_coluna # Quando o k alcança o número de colunas.
                 mul t4, t0, a3 # (i * colunas a), indica o avanço através das linhas.
-                addi t4, t4, t2 # (t4 + K), indica o avanço através das colunas.
+                add t4, t4, t2 # (t4 + K), indica o avanço através das colunas.
                 slli t4, t4, 2 # Conversão em bits.
                 add t4, t4, a1 # Adicionar ao endereço.
                 lw t5, 0(t4) # Load do valor.
                 mul t6, t2, a6 # (k * colunas b), indica o avanço através das linhas.
-                addi t6, t6, t1 # (t4 + j), indica o avanço através das colunas.
+                add t6, t6, t1 # (t4 + j), indica o avanço através das colunas.
                 slli t6, t6, 2 # Mesmo lógica de A.
                 add t6, t6, a4
                 lw t6, 0(t6)
