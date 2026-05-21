@@ -326,7 +326,7 @@ parse_matrix_buffer:
     parse_matrix_buffer_loop:
         lb t0, 0(s0) # Carrega um elemento do buffer 
 
-        
+
         li a5 CONST_CHAR_EOF
         beq t0, a5, parse_matrix_buffer_end # Fim da matriz
         li a5 CONST_CHAR_SPACE
@@ -595,6 +595,7 @@ compute_scores:
 # (in)  a3: #cols (int)
 # (in)  a4: target row
 select_vector_in_matrix:
+    addi a4, a4, -1
     mul t0, a4, a3
     slli t0, t0, 2
     add a0, a1, t0
