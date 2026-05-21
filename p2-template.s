@@ -237,8 +237,13 @@ main:
     ###########################################################################
     # Select chosen vector in V using the index from argmax
     ###########################################################################
-    # TODO
-
+    mv a4, a1 # Resultado da coluna escolhida argmax
+    la a1, V_MATRIX
+    mv a2, s0
+    la a3, CONST_DIMENSION
+    
+    jal select_vector_in_matrix
+    
     ###########################################################################
     # Pick the next token in the vocabulary with the highest score
     ###########################################################################
@@ -364,7 +369,7 @@ parse_matrix_buffer:
         mv t4, x0
         lw s0, 0(sp)
         addi sp, sp, 4
-        jr ra # Retorna à chamada.
+        ret # Retorna à chamada.
 
     
 
@@ -528,7 +533,7 @@ matrix_multiply:
             addi t0, t0, 1 # Incrementar o i.
             j matrix_multiply_first_loop
     matrix_multiply_end:
-        jr ra # Retorno à chamada.
+        ret # Retorno à chamada.
 
 
 
@@ -590,7 +595,10 @@ compute_scores:
 # (in)  a3: #cols (int)
 # (in)  a4: target row
 select_vector_in_matrix:
-    # TODO
+    mul t0, a4, a3
+    slli t0, t0, 2
+    add a0, a1, t0
+
 
 # (out) a0: index of the predicted token in the vocabulary (int)
 # (in)  a0: address of target vector (int*)
