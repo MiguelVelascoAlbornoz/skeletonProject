@@ -344,7 +344,6 @@ a#ddi sp, sp, -4      # reservar 1 word (4 bytes)
     mv a0 s1
     li a1 CONST_DIMENSION
     jal print_vector
-    ######################
 
     #####################################################
     # Terminate program successfully
