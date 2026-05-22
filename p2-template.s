@@ -242,7 +242,9 @@ main:
     ###########################################################################
     # Select chosen vector in V using the index from argmax
     ###########################################################################
-#addi sp, sp, -4      # reservar 1 word (4 bytes)
+    
+#Imprime o indice do melhor score
+a#ddi sp, sp, -4      # reservar 1 word (4 bytes)
 #sw a1, 0(sp)         # guardar a1 en la pila
 
 #mv a0, sp            # a0 = puntero al "vector"
@@ -258,12 +260,44 @@ main:
     
     jal select_vector_in_matrix
     
+    mv s1 a0
 
     la a1 VOCAB_EMBEDDINGS_MATRIX
     la a2 VOCAB_TOTAL_TOKENS
     lw a2 0(a2)
     jal decide_next_token
+    
+
     #a0 next token index in vocabulary
+#addi sp, sp, -4      # reservar 1 word (4 bytes)
+#sw a0, 0(sp)         # guardar a1 en la pila
+
+#mv a0, sp            # a0 = puntero al "vector"
+#li a1, 1             # longitud = 1
+#jal print_vector
+
+#addi sp, sp, 4       # restaurar stack
+
+
+    #imprimir  token, indice de vocab guardado em a0
+    li t0 0 #newLineCounter
+    la a1 VOCAB_BUFFER #vocabPointer
+    li t1 CONST_CHAR_NEWLINE #t1 = \n
+    find_token_in_vocab:
+      beq t0 a0 find_token_end #newLineCounter == wordIndex
+       lbu a2 0(a1) #a2 = charValue
+       bne a2 t1 find_token_normal #charValue != \n 
+       
+       addi t0 t0 1 #newLineCounter++
+           
+       find_token_normal:
+           addi a1 a1 1 #VocabPointer++ 
+           j find_token_in_vocab
+    find_token_end:
+    #a1 deve apontar ao primer caracter da palavra
+    mv a0 a1    
+    jal print_predicted_token
+    
 
     #debug things
     la a0, VOCAB_BUFFER 
@@ -305,11 +339,10 @@ main:
     la a0, SCORES_VECTOR
     la a1, INPUT_TOTAL_TOKENS
     lw a1, 0(a1)
-    jal print_vector
+    jal print_scores
     
     mv a0 s1
-    la a1, INPUT_TOTAL_TOKENS
-    lw a1, 0(a1)
+    li a1 CONST_DIMENSION
     jal print_vector
     ######################
 
@@ -369,18 +402,21 @@ parse_matrix_buffer:
     li t3, 0 #Contador de linhas
     li t4, 0 #Registo para n>9
     li t5, 1 #Sinal do número
+    
+    li t6 CONST_CHAR_EOF
+    li a6 CONST_CHAR_SPACE
+    li a7 CONST_CHAR_NEWLINE
+    li t1 CONST_CHAR_HYPHEN
     parse_matrix_buffer_loop:
-        lb t0, 0(s0) # Carrega um elemento do buffer 
+        lbu t0, 0(s0) # Carrega um elemento do buffer 
 
+        beq t0, t6, parse_matrix_buffer_end # Fim da matriz
+ 
+        beq t0, a6, parse_matrix_buffer_Novo_Numero # Nova coluna
 
-        li a5 CONST_CHAR_EOF
-        beq t0, a5, parse_matrix_buffer_end # Fim da matriz
-        li a5 CONST_CHAR_SPACE
-        beq t0, a5, parse_matrix_buffer_Novo_Numero # Nova coluna
-        li a5 CONST_CHAR_NEWLINE
-        beq t0, a5, parse_matrix_buffer_Nova_Linha # Mudança de linha
-        li a5 CONST_CHAR_HYPHEN
-        beq t0, a5, parse_matrix_buffer_Mudanca_Sinal # Números negativos
+        beq t0, a7, parse_matrix_buffer_Nova_Linha # Mudança de linha
+
+        beq t0, t1, parse_matrix_buffer_Mudanca_Sinal # Números negativos
         addi t0, t0, -CONST_CHAR_ZERO
         li a5 10
         mul t4, t4, a5 #Cálculo de n>9
@@ -651,44 +687,58 @@ select_vector_in_matrix:
 # (in)  a1: vocabulary embeddings address (int*)
 # (in)  a2: number of tokens in vocabulary (int)
 decide_next_token:
-    addi sp sp -32
+    addi sp sp -36
     sw s0 0(sp) #Target vector adress
-    sw s1 4(sp) #E,beddings adress
+    sw s1 4(sp) #Embeddings adress
     sw s2 8(sp) #Num tokens
     sw s3 12(sp) # bestIndex
     sw s4 16(sp) # ActualIndex
     sw ra 20(sp)
-    sw s5 24(sp) #bestAdress
-    sw s6 28(sp) #actualAdress
-    sw s7 32(sp) # embeddingsSize
+
+    sw s6 24(sp) #actualAdress
+    sw s7 28(sp) # embeddingsSize
+    sw s8 32(sp) # bestScore
     mv s0 a0
-    mv s1 a1
+    li s1 CONST_DIMENSION
     mv s2 a2
     li s3 0
     li s4 0
-    mv s5 s1
-    mv s6 s1
-    li s7 CONST_DIMENSION #embeddings size
+    mv s6 a1
+    slli s7 s1 2 #s7*=CONST_DIMENSION*4
+    li s8 0x80000000 #menor numero possivel
+
+
     next_token_loop:
-        bge s3 s2 next_token_end #actualIndex >= TOTAL_TOKENS 
+        bge s4 s2 next_token_end #actualIndex >= TOTAL_TOKENS 
         
-        #Obter adress de embedding atual
         
-        mul a1 s4 s5 # a0 = rowIndex*CONST_DIMENSION
-        slli a1 a1 2 #a0 *= 4
+        mv a1 s6 #Adress embbeding atual
+        mv a2 s0 #Adress vetor a comparar
+        mv a3 s1 #Tamanho
+        jal dot
+        #a1 result
+        ble a1 s8 next_token_minor #caso result < bestScore
+        mv s3 s4 #bestIndex passa a ser o indiceAtual
+        mv s8 a1 #s8 passa  a ser result
         
+        next_token_minor: 
+        addi s4 s4 1 #actualIndex++
+        add s6 s6 s7 #actualAdress = actualAdress + CONST_DIMENSION * 4
+        j next_token_loop
         
     next_token_end:
-
+        mv a0 s3
         lw s0 0(sp)
         lw s1 4(sp)
         lw s2 8(sp)
         lw s3 12(sp)
         lw s4 16(sp)
         lw ra 20(sp)
-        lw s5 24(sp)
-        lw s6 28(sp)
-        addi sp sp 32
+        lw s6 24(sp)
+        lw s7 28(sp)
+        lw s8 32(sp)
+        addi sp sp 36
+        ret
 #############################################################################################################
 # Dot product and argmax helper functions.
 #############################################################################################################
