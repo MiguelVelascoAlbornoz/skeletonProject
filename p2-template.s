@@ -40,13 +40,13 @@
 # Data section with static memory reservations.
 # Feel free to add more if needed.
 ###########################################################################
-VOCABULARY_FILENAME:     .string "C:/Users/migue/Downloads/Aulas/IAC/skeletonProject/vocab.txt"
-EMBEDDINGS_FILENAME:     .string "C:/Users/migue/Downloads/Aulas/IAC/skeletonProject/embeddings.txt"
-INPUT_FILENAME:          .string "C:/Users/migue/Downloads/Aulas/IAC/skeletonProject/input.txt"
+VOCABULARY_FILENAME:     .string "vocab.txt"
+EMBEDDINGS_FILENAME:     .string "embeddings.txt"
+INPUT_FILENAME:          .string "input.txt"
 
-W_Q_FILENAME:            .string "C:/Users/migue/Downloads/Aulas/IAC/skeletonProject/W_Q.txt"
-W_K_FILENAME:            .string "C:/Users/migue/Downloads/Aulas/IAC/skeletonProject/W_K.txt"
-W_V_FILENAME:            .string "C:/Users/migue/Downloads/Aulas/IAC/skeletonProject/W_V.txt"
+W_Q_FILENAME:            .string "W_Q.txt"
+W_K_FILENAME:            .string "W_K.txt"
+W_V_FILENAME:            .string "W_V.txt"
 .align 4
 VOCAB_BUFFER:            .zero CONST_BUFFER_SIZE                              # Contents of the vocabulary file
 INPUT_BUFFER:            .zero CONST_BUFFER_SIZE                              # Contents of the input file
@@ -243,16 +243,6 @@ main:
     # Select chosen vector in V using the index from argmax
     ###########################################################################
     
-#Imprime o indice do melhor score
-a#ddi sp, sp, -4      # reservar 1 word (4 bytes)
-#sw a1, 0(sp)         # guardar a1 en la pila
-
-#mv a0, sp            # a0 = puntero al "vector"
-#li a1, 1             # longitud = 1
-#jal print_vector
-
-#addi sp, sp, 4       # restaurar stack
-
     mv a4, a1 # Resultado da coluna escolhida argmax
     la a1, V_MATRIX
     mv a2, s0
@@ -267,17 +257,6 @@ a#ddi sp, sp, -4      # reservar 1 word (4 bytes)
     lw a2 0(a2)
     jal decide_next_token
     
-
-    #a0 next token index in vocabulary
-#addi sp, sp, -4      # reservar 1 word (4 bytes)
-#sw a0, 0(sp)         # guardar a1 en la pila
-
-#mv a0, sp            # a0 = puntero al "vector"
-#li a1, 1             # longitud = 1
-#jal print_vector
-
-#addi sp, sp, 4       # restaurar stack
-
 
     #imprimir  token, indice de vocab guardado em a0
     li t0 0 #newLineCounter
@@ -298,53 +277,6 @@ a#ddi sp, sp, -4      # reservar 1 word (4 bytes)
     mv a0 a1    
     jal print_predicted_token
     
-
-    #debug things
-    la a0, VOCAB_BUFFER 
-    jal print_vocabulary
-    
-    la a0, INPUT_BUFFER
-    jal print_input
-    
-    la a0, INPUT_INDICES_VECTOR
-    la a1, INPUT_TOTAL_TOKENS
-    lw a1, 0(a1)
-    jal print_indices
-    
-    la a0, INPUT_EMBEDDINGS_MATRIX
-    la a1, INPUT_TOTAL_TOKENS
-    lw a1, 0(a1)
-    li a2 CONST_DIMENSION
-    jal print_matrix
-    
-    
-    la a0, Q_MATRIX
-    la a1, INPUT_TOTAL_TOKENS
-    lw a1, 0(a1)
-    li a2 CONST_DIMENSION
-    jal print_matrix
-    
-    la a0, K_MATRIX
-    la a1, INPUT_TOTAL_TOKENS
-    lw a1, 0(a1)
-    li a2 CONST_DIMENSION
-    jal print_matrix
-    
-    la a0, V_MATRIX
-    la a1, INPUT_TOTAL_TOKENS
-    lw a1, 0(a1)
-    li a2 CONST_DIMENSION
-    jal print_matrix
-    
-    la a0, SCORES_VECTOR
-    la a1, INPUT_TOTAL_TOKENS
-    lw a1, 0(a1)
-    jal print_scores
-    
-    mv a0 s1
-    li a1 CONST_DIMENSION
-    jal print_vector
-
     #####################################################
     # Terminate program successfully
     ###########################################################################
@@ -461,25 +393,18 @@ parse_matrix_buffer:
 # (in)     a3: address to vocabulary buffer
 tokens_to_indices:
     #Inicialização
-    mv t0 a0
-    mv t1 a2
-    mv t2 a3
-    mv t6 t1
-    li a4 0
-    li a1 0
+    mv t0 a0 #t0 -> pointer to actual index to put the index
+    mv t1 a2 #t1 -> pointer to actualInputChar of input buffer
+    mv t2 a3 #t2 -> pointer to actualVocabChar of vocab buffer
+    mv t6 t1 #t6 -> pointer to actualWorld of input buffer
+    li a4 0 #a4 -> nr da palavra a inserir
+    li a1 0 #a1 -> nr de palavras no input
     li a5 CONST_CHAR_NEWLINE
     li a6 CONST_CHAR_EOF
-    #t0 -> pointer to actual index to put the index
-    #t1 -> pointer to actualInputChar of input buffer
-    #t2 -> pointer to actualVocabChar of vocab buffer
-    #t6 -> pointer to actualWorld of input buffer
-    #t3 -> actual input char
-    #t4 -> actual vocab char
-    #a4 -> nr da palavra a inserir
-    #a1 -> nr de palavras no input
+     
     tokens_while:
-        lbu t3 0(t1) 
-        lbu t4 0(t2) 
+        lbu t3 0(t1) #t3 -> actual input char
+        lbu t4 0(t2) #t4 -> actual vocab char
          
         beq t3 a6 tokens_while_end #t3 == '\0' (*inputChar == EOF)
         
@@ -716,7 +641,7 @@ decide_next_token:
         mv a3 s1 #Tamanho
         jal dot
         #a1 result
-        ble a1 s8 next_token_minor #caso result < bestScore
+        blt a1 s8 next_token_minor #caso result <= bestScore
         mv s3 s4 #bestIndex passa a ser o indiceAtual
         mv s8 a1 #s8 passa  a ser result
         
