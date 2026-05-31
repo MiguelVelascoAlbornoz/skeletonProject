@@ -302,10 +302,6 @@
     <a name="circuit" val="ALU"/>
     <a name="circuitnamedboxfixedsize" val="true"/>
     <a name="simulationFrequency" val="1.0"/>
-    <comp lib="0" loc="(220,660)" name="Pin">
-      <a name="appearance" val="NewPins"/>
-      <a name="label" val="ControlDota"/>
-    </comp>
     <comp lib="0" loc="(240,450)" name="Pin">
       <a name="appearance" val="NewPins"/>
       <a name="label" val="X1"/>
@@ -340,7 +336,11 @@
       <a name="appearance" val="NewPins"/>
       <a name="label" val="Control"/>
     </comp>
-    <comp lib="0" loc="(720,440)" name="Pin">
+    <comp lib="0" loc="(760,560)" name="Pin">
+      <a name="appearance" val="NewPins"/>
+      <a name="label" val="ControlDota"/>
+    </comp>
+    <comp lib="0" loc="(890,470)" name="Pin">
       <a name="appearance" val="NewPins"/>
       <a name="facing" val="west"/>
       <a name="radix" val="16"/>
@@ -353,6 +353,9 @@
     <comp lib="2" loc="(470,530)" name="Multiplexer">
       <a name="width" val="16"/>
     </comp>
+    <comp lib="2" loc="(830,490)" name="Multiplexer">
+      <a name="width" val="16"/>
+    </comp>
     <comp lib="3" loc="(420,460)" name="Multiplier">
       <a name="width" val="16"/>
     </comp>
@@ -362,13 +365,26 @@
     <comp lib="3" loc="(640,440)" name="Adder">
       <a name="width" val="16"/>
     </comp>
-    <comp lib="9" loc="(365,357)" name="Text">
-      <a name="text" val="Control = 0 -&gt; x1+y1;Control = 1 -&gt; dot(x,y)"/>
+    <comp lib="3" loc="(700,480)" name="Adder">
+      <a name="width" val="16"/>
+    </comp>
+    <comp lib="9" loc="(619,226)" name="Text">
+      <a name="text" val="Control = 0, ControlDota = 0, -&gt; X1 + Y1"/>
+    </comp>
+    <comp lib="9" loc="(622,266)" name="Text">
+      <a name="text" val="Control = 1, ControlDota = 0, -&gt; dot(X,Y)"/>
+    </comp>
+    <comp lib="9" loc="(639,246)" name="Text">
+      <a name="text" val="Control = 0, ControlDota = 1, -&gt; X1 + Y1 + Rd"/>
+    </comp>
+    <comp lib="9" loc="(641,286)" name="Text">
+      <a name="text" val="Control = 1, ControlDota = 1, -&gt; dot(X,Y) + Rd"/>
     </comp>
     <wire from="(240,450)" to="(360,450)"/>
     <wire from="(240,480)" to="(340,480)"/>
     <wire from="(240,530)" to="(350,530)"/>
     <wire from="(240,560)" to="(380,560)"/>
+    <wire from="(240,620)" to="(560,620)"/>
     <wire from="(340,480)" to="(340,540)"/>
     <wire from="(340,540)" to="(380,540)"/>
     <wire from="(350,470)" to="(350,520)"/>
@@ -391,40 +407,27 @@
     <wire from="(470,530)" to="(580,530)"/>
     <wire from="(540,460)" to="(540,560)"/>
     <wire from="(540,560)" to="(540,580)"/>
+    <wire from="(560,570)" to="(560,620)"/>
+    <wire from="(560,570)" to="(650,570)"/>
     <wire from="(570,430)" to="(570,440)"/>
     <wire from="(570,430)" to="(600,430)"/>
     <wire from="(580,450)" to="(580,530)"/>
     <wire from="(580,450)" to="(600,450)"/>
-    <wire from="(640,440)" to="(720,440)"/>
-  </circuit>
-  <circuit name="DOT">
-    <a name="appearance" val="logisim_evolution"/>
-    <a name="circuit" val="DOT"/>
-    <a name="circuitnamedboxfixedsize" val="true"/>
-    <a name="simulationFrequency" val="1.0"/>
-    <comp lib="0" loc="(240,430)" name="Pin">
-      <a name="appearance" val="NewPins"/>
-      <a name="label" val="X1"/>
-      <a name="radix" val="16"/>
-      <a name="width" val="16"/>
-    </comp>
-    <comp lib="0" loc="(240,460)" name="Pin">
-      <a name="appearance" val="NewPins"/>
-      <a name="label" val="X2"/>
-      <a name="radix" val="16"/>
-      <a name="width" val="16"/>
-    </comp>
-    <comp lib="0" loc="(240,540)" name="Pin">
-      <a name="appearance" val="NewPins"/>
-      <a name="label" val="Y1"/>
-      <a name="radix" val="16"/>
-      <a name="width" val="16"/>
-    </comp>
-    <comp lib="0" loc="(240,570)" name="Pin">
-      <a name="appearance" val="NewPins"/>
-      <a name="label" val="Y2"/>
-      <a name="radix" val="16"/>
-      <a name="width" val="16"/>
-    </comp>
+    <wire from="(640,440)" to="(650,440)"/>
+    <wire from="(650,440)" to="(650,470)"/>
+    <wire from="(650,440)" to="(780,440)"/>
+    <wire from="(650,470)" to="(660,470)"/>
+    <wire from="(650,490)" to="(650,570)"/>
+    <wire from="(650,490)" to="(660,490)"/>
+    <wire from="(700,480)" to="(760,480)"/>
+    <wire from="(760,480)" to="(760,500)"/>
+    <wire from="(760,500)" to="(800,500)"/>
+    <wire from="(760,560)" to="(810,560)"/>
+    <wire from="(780,440)" to="(780,480)"/>
+    <wire from="(780,480)" to="(800,480)"/>
+    <wire from="(810,510)" to="(810,560)"/>
+    <wire from="(830,490)" to="(880,490)"/>
+    <wire from="(880,470)" to="(880,490)"/>
+    <wire from="(880,470)" to="(890,470)"/>
   </circuit>
 </project>
