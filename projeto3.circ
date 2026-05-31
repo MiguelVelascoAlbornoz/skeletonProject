@@ -57,6 +57,17 @@
     <a name="circuit" val="main"/>
     <a name="circuitnamedboxfixedsize" val="true"/>
     <a name="simulationFrequency" val="1.0"/>
+    <comp lib="5" loc="(240,650)" name="Register">
+      <a name="appearance" val="logisim_evolution"/>
+      <a name="label" val="PC"/>
+    </comp>
+    <comp lib="5" loc="(380,640)" name="ROM">
+      <a name="addrWidth" val="16"/>
+      <a name="appearance" val="logisim_evolution"/>
+      <a name="contents">addr/data: 16 8
+0
+</a>
+    </comp>
     <comp loc="(630,440)" name="RegistBank"/>
   </circuit>
   <circuit name="RegistBank">
@@ -101,34 +112,42 @@
     </comp>
     <comp lib="5" loc="(270,290)" name="Register">
       <a name="appearance" val="logisim_evolution"/>
+      <a name="label" val="R0"/>
       <a name="width" val="16"/>
     </comp>
     <comp lib="5" loc="(270,370)" name="Register">
       <a name="appearance" val="logisim_evolution"/>
+      <a name="label" val="R1"/>
       <a name="width" val="16"/>
     </comp>
     <comp lib="5" loc="(270,450)" name="Register">
       <a name="appearance" val="logisim_evolution"/>
+      <a name="label" val="R2"/>
       <a name="width" val="16"/>
     </comp>
     <comp lib="5" loc="(270,530)" name="Register">
       <a name="appearance" val="logisim_evolution"/>
+      <a name="label" val="R3"/>
       <a name="width" val="16"/>
     </comp>
     <comp lib="5" loc="(270,610)" name="Register">
       <a name="appearance" val="logisim_evolution"/>
+      <a name="label" val="R4"/>
       <a name="width" val="16"/>
     </comp>
     <comp lib="5" loc="(270,690)" name="Register">
       <a name="appearance" val="logisim_evolution"/>
+      <a name="label" val="R5"/>
       <a name="width" val="16"/>
     </comp>
     <comp lib="5" loc="(270,770)" name="Register">
       <a name="appearance" val="logisim_evolution"/>
+      <a name="label" val="R6"/>
       <a name="width" val="16"/>
     </comp>
     <comp lib="5" loc="(270,850)" name="Register">
       <a name="appearance" val="logisim_evolution"/>
+      <a name="label" val="R7"/>
       <a name="width" val="16"/>
     </comp>
     <wire from="(100,640)" to="(140,640)"/>
