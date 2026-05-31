@@ -1,9 +1,9 @@
 Instruções (16 bits):
 
-li rd, imm          -> 00 (opcode)  (A-Type) (3 + 2 + 5 + 6) funct5
-add rd, rs          -> 01 (opcode)  (B-Type) (3 + 3 + 2) funct5 + funct3
-dot rd, rs          -> 01 (opcode)  (B-Type) (3 + 3 + 2) funct5 + funct3
-dota rd, rs1, rs2   -> 10 (opcode)  (C-Type) (3 + 3 + 3 + 2) funct5
+li rd, imm          -> 00 (opcode)  (A-Type) (3 + 2 + 5 + 6) funct5 (00000)
+add rd, rs          -> 01 (opcode)  (B-Type) (3 + 3 + 2) funct5 (00000) + funct3 (000)
+dot rd, rs          -> 01 (opcode)  (B-Type) (3 + 3 + 2) funct5 (00000) + funct3 (001)
+dota rd, rs1, rs2   -> 10 (opcode)  (C-Type) (3 + 3 + 3 + 2) funct5 (00000)
 
 A-Type:
 rd (0:2) + imm (3:8) +                funct5 (9:13) + opcode (14:16)
