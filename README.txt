@@ -35,7 +35,7 @@ Notas:
 	
 	- O opcode também indica a fonte do dado a guardar: (Isto poderia gerar problemas pois uma instrução que deve guardar um imediato nunca poderia guardar o resultado em rs2)
 		00: imediato
-		XX: ALU
+		!=00: ALU
 	
 
 
